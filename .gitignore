@@ -1,0 +1,15 @@
+### macOS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### Python (build_pdf.py) ###
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+### Editors ###
+.vscode/
+.idea/
+*.swp
