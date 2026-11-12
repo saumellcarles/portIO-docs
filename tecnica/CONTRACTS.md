@@ -138,10 +138,10 @@ salvo `/api/public/**`.
 |---|---|---|
 | `POST` / `GET` | `/api/companies` / `/api/companies/me` | ADMIN\*/COMPANY_ADMIN / autenticado |
 | `POST` / `GET` | `/api/users` / `/api/users/me` | ADMIN/COMPANY_ADMIN / autenticado |
-| `GET` | `/api/vessels`, `/api/vessels/{mmsi}`, `/api/vessels/{mmsi}/eta`, `/api/vessels/{mmsi}/history`, `/api/vessels/{mmsi}/track.geojson`, `/api/vessels/history[/​{id}]` | autenticado |
+| `GET` | `/api/vessels`, `/api/vessels/{mmsi}`, `/api/vessels/{mmsi}/eta`, `/api/vessels/{mmsi}/history`, `/api/vessels/{mmsi}/track.geojson`, `/api/vessels/history[/​{id}]?page&size` | autenticado |
 | `GET` | `/api/maritime/tiles/vessel-{tracks,live}/{z}/{x}/{y}.pbf` | autenticado |
 | `GET` | `/api/maritime/ws-status` | autenticado |
-| CRUD | `/api/operations/calls[/​{id}]`, `/assign-berth`, `/status`, `/berth-suggestions` | ADMIN/COMPANY_ADMIN |
+| `GET` | `/api/operations/calls[/​{id}]`, `/berth-suggestions` | ADMIN/COMPANY_ADMIN |
 | `GET` | `/api/operations/berths[/forecast]`, `/api/operations/congestion`, `/api/operations/alerts[/active]` | ADMIN/COMPANY_ADMIN |
 | `PATCH` | `/api/operations/alerts/{id}/acknowledge` | ADMIN/COMPANY_ADMIN |
 | `GET`/`POST` | `/api/integrations/api-key` | autenticado / ADMIN |
@@ -154,6 +154,25 @@ en varios `@PreAuthorize` como preparación futura, no se emite todavía.
 `/api/incidents/**`, `/api/audit/**`, `/api/geo/**`, `/api/emissions/**`,
 `/api/maritime/vessels/**` (la ruta real es `/api/vessels/**`, sin
 `/maritime`).
+
+**Sin CRUD de operaciones**: no existen (ni existirán) `POST`/`PUT`/`DELETE`
+sobre `/api/operations/calls/**`, ni `PATCH .../assign-berth` o
+`PATCH .../status`. La plataforma no permite crear, editar, asignar muelle
+ni borrar una escala desde la aplicación ni desde la API — es una decisión
+de producto, no un *gap* pendiente. Las escalas y atraques se consultan;
+los datos que las describen (buque, ETA, muelle, estado) llegan de ICE/PCS
+y de AIS. El único *write path* de `operations` es
+`PATCH /api/operations/alerts/{id}/acknowledge` (reconocer una alerta, que
+no modifica datos operativos).
+
+**Paginación de `/api/vessels/history[/​{id}]`**: ambos endpoints aceptan
+`page` (0-based) y `size`; ninguna de las dos tablas que alimentan (`vessel`,
+`vessel_history`) tiene un tope de filas. En el detalle, `totals` y
+`segments` se calculan sobre **todo** el histórico del buque, no sobre la
+página — son agregados y no se pueden partir sin falsear el resultado.
+Solo la lista `track` (los registros crudos que ve la tabla) se pagina,
+de más reciente a más antigua; `trackLine` (solo lat/lon, para el mapa de
+trayectoria) va siempre completa.
 
 ### portIO-ai — endpoints reales
 
@@ -204,7 +223,8 @@ siquiera que exista.
   - `/` — dispara el flujo de login si no hay token, si lo hay redirige a `/panel`
   - `/auth/callback` — intercambia `code` por tokens
   - `/panel` — *dashboard* principal
-  - `/buques`, `/buques/puerto`, `/buques/eta`, `/buques/alertas` — módulo marítimo
+  - `/buques`, `/buques/puerto`, `/buques/eta`, `/buques/alertas`,
+    `/buques/historial[/​{id}]` — módulo marítimo
   - `/operativa`, `/operativa/fondeo`, `/operativa/atraques`, `/operativa/escalas` — módulo operativa
   - `/asistente-virtual`, `/resumen-diario` — módulo de IA
   - `/integraciones/api`, `/empresa`, `/perfil` — cuenta/integración
@@ -231,7 +251,7 @@ independiente, sin dependencias de backend.
 
 ## 10. Datos de semilla (demo)
 
-- 1 empresa: `Port de Tarragona`.
+- 1 empresa: `portIO`.
 - 1 usuario administrador, sembrado por `portIO-auth`
   (`V1__init.sql`): `admin@portio.es` / `apt1234`, `ROLE_ADMIN`.
 - Los `id`/`company_id` de este usuario están sincronizados entre

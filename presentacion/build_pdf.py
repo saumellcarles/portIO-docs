@@ -6,7 +6,7 @@ PortIO - Inteligencia operativa marítima y portuaria en tiempo real.
 Estructura de la presentación:
   - Resumen ejecutivo            → qué es PortIO de un vistazo.
   - Bloque 1 · Visión general    → propósito, necesidad → capacidad, los 3 módulos.
-  - Bloque 2 · Recorrido         → tour por las 10 pantallas (con capturas reales).
+  - Bloque 2 · Recorrido         → tour por las 11 pantallas (con capturas reales).
   - Bloque 3 · Valor para el puerto → Smart Port, asistente de IA, tiempo real.
 
 Diseño alineado con la plataforma web (azul de marca #003A8C + acento cian del
@@ -177,7 +177,7 @@ def cover_background(c, doc):
     c.setFillColor(SLATE); c.setFont("Helvetica", 9)
     c.drawString(28 * mm, 19 * mm, "Mayo 2026  ·  Versión 1.0")
     c.setFillColor(CYAN); c.setFont("Helvetica-Bold", 9)
-    c.drawRightString(PAGE_W - 28 * mm, 19 * mm, "demo.portio.es")
+    c.drawRightString(PAGE_W - 28 * mm, 19 * mm, "portio.es")
     c.restoreState()
 
 
@@ -270,7 +270,7 @@ def diagram_modules() -> Drawing:
     d.add(String(cw / 2, 32, "CAPA DE DATOS EN TIEMPO REAL",
                  textAnchor="middle", fontName="Helvetica-Bold",
                  fontSize=10, fillColor=NAVY))
-    d.add(String(cw / 2, 18, "AIS en vivo  ·  PCS  ·  WebSocket STOMP  ·  PostgreSQL + PostGIS  ·  multi-tenant",
+    d.add(String(cw / 2, 18, "AIS en vivo  ·  ICE/PCS  ·  WebSocket STOMP  ·  PostgreSQL + PostGIS  ·  multi-tenant",
                  textAnchor="middle", fontName="Helvetica", fontSize=8, fillColor=SLATE))
     return d
 
@@ -490,8 +490,9 @@ def _cover(story):
         Spacer(1, 6 * mm),
         Paragraph(
             "Una sola capa digital que reúne la visibilidad del tráfico marítimo, "
-            "la planificación de escalas y atraques, y un asistente de IA sobre "
-            "los datos reales del puerto - sobre datos AIS en vivo.",
+            "la consulta de escalas y atraques, y un asistente de IA sobre "
+            "los datos reales del puerto - sobre datos AIS en vivo y los sistemas "
+            "ICE/PCS del puerto.",
             cover_desc),
         Spacer(1, 40 * mm),
     ]
@@ -547,10 +548,11 @@ def _resumen(story, doc):
     story.append(Paragraph(
         "<b>PortIO</b> es la plataforma que da a un puerto una visión operativa "
         "única y en tiempo real: qué buques hay en el área, qué llega en las "
-        "próximas horas, cómo se planifican muelles y escalas, y un asistente de "
+        "próximas horas, cómo están muelles y escalas, y un asistente de "
         "IA que responde en lenguaje natural con los datos reales de todo ese "
-        "tráfico. Toda la información parte de la misma fuente -el flujo AIS en "
-        "vivo- y se presenta a cada usuario filtrada por su organización.",
+        "tráfico. Toda la información parte de las mismas fuentes -el flujo AIS "
+        "en vivo y los sistemas ICE/PCS del puerto- y se presenta a cada usuario "
+        "filtrada por su organización.",
         ST_BODY_LEAD))
     story.append(Spacer(1, 4 * mm))
     story.append(kpi_row([
@@ -583,7 +585,7 @@ def _bloque1(story, doc):
     story.append(Paragraph(
         "Un puerto recibe en todo momento información de tráfico marítimo (AIS), "
         "pero esa información llega dispersa, sin contexto operativo y sin enlazar "
-        "con la planificación de muelles ni con las obligaciones ambientales. El "
+        "con el estado real de los muelles ni con las obligaciones ambientales. El "
         "resultado: decisiones tardías, congestión imprevista y reporting manual.",
         ST_BODY))
     story.append(Paragraph(
@@ -591,7 +593,9 @@ def _bloque1(story, doc):
         "una misma base de datos en tiempo real construye tres módulos que se "
         "refuerzan entre sí:", ST_BODY))
     story.append(li("<b>Visibilidad</b>: ver en vivo quién está y qué llega."))
-    story.append(li("<b>Decisión</b>: planificar escalas y atraques sobre esa visibilidad."))
+    story.append(li("<b>Decisión</b>: anticipar congestión y evaluar el mejor muelle, "
+                     "con apoyo de previsión e IA, sobre esa visibilidad -sin "
+                     "gestionar ni asignar nada desde la plataforma."))
     story.append(li("<b>Inteligencia</b>: preguntar en lenguaje natural y recibir respuestas sobre los datos reales."))
     story.append(Spacer(1, 6 * mm))
     story.append(std_table(
@@ -601,8 +605,9 @@ def _bloque1(story, doc):
              "Mapa en vivo + tabla de buques + predicción de ETA con nivel de confianza"],
             ["Anticipar congestión de muelles",
              "Previsión de ocupación a 72 h y alertas de conflicto de atraque"],
-            ["Planificar escalas y asignar muelle",
-             "CRUD de escalas con sugerencia automática de muelle puntuada"],
+            ["Consultar el estado de escalas y muelles",
+             "Visibilidad del ciclo de vida de cada escala, sincronizada desde ICE/PCS, "
+             "con sugerencia automática de muelle puntuada por IA"],
             ["Responder preguntas operativas sin navegar pantallas",
              "Asistente de IA que consulta los datos reales (nunca inventa cifras) y "
              "resumen ejecutivo diario generado automáticamente"],
@@ -649,7 +654,7 @@ def _bloque2(story, doc):
     story += block_divider(
         "BLOQUE 2",
         "Recorrido por<br/>la plataforma",
-        "Las diez pantallas de los tres módulos, con capturas reales de demo.portio.es.",
+        "Las once pantallas de los tres módulos, con capturas reales de portio.es.",
         toc_text="Recorrido por la plataforma")
 
     # --- Módulo Marítimo ---
@@ -668,7 +673,7 @@ def _bloque2(story, doc):
         "orientado a su rumbo, con casco a escala real para los grandes. Al pulsar "
         "un buque se abre el detalle estático (eslora, IMO, tipo, propietario, ETA).",
         "01-mapa-buques.png",
-        "Mapa de buques en vivo sobre el Port de Tarragona",
+        "Mapa de buques en vivo sobre el puerto",
         value="el operador ve de un vistazo la situación real del puerto")
 
     _screen(story, "2 · Buques en puerto  ·  /buques/puerto",
@@ -695,49 +700,64 @@ def _bloque2(story, doc):
         "Eventos operativos en vivo y previsión de congestión a 72 horas",
         value="reaccionar a tiempo y prever la saturación antes de que ocurra")
 
+    _screen(story, "5 · Historial  ·  /buques/historial",
+        "Catálogo de todos los buques que el sistema ha visto alguna vez, con "
+        "acceso al histórico completo de posiciones de cada uno. El catálogo y "
+        "el histórico se consultan paginados -ninguna de las dos tablas tiene "
+        "techo de filas-, pero los totales por estado y el mapa de trayectoria "
+        "se calculan siempre sobre el histórico completo del buque, nunca solo "
+        "sobre la página visible.",
+        "05-historial.png",
+        "Catálogo de buques y trayectoria histórica completa de uno de ellos",
+        value="reconstruir el recorrido completo de cualquier buque, sin límite de histórico")
+
     # --- Módulo Operativa ---
     open_sub_block(story, "Módulo Operativa")
     story.append(Paragraph("Módulo Operativa", ST_H1))
     story.append(hr(width=2, color=NAVY))
     story.append(Spacer(1, 3 * mm))
     story.append(Paragraph(
-        "Gestión y planificación de escalas, muelles y fondeo. Aquí el operador "
-        "deja de «ver» y empieza a «decidir»: crear escalas, asignar muelles y "
-        "transicionar estados.", ST_BODY_LEAD))
+        "Consulta y seguimiento de escalas, muelles y fondeo, sincronizados desde "
+        "ICE/PCS. El operador no gestiona aquí: consulta el estado real y recibe "
+        "apoyo a la decisión -previsión de ocupación, sugerencia de muelle por IA "
+        "y alertas de conflicto-, sin crear, editar ni asignar nada desde la "
+        "plataforma.", ST_BODY_LEAD))
     story.append(Spacer(1, 3 * mm))
 
-    _screen(story, "5 · KPIs operativos  ·  /operativa",
+    _screen(story, "6 · KPIs operativos  ·  /operativa",
         "Panel ejecutivo de un vistazo: buques activos, muelles ocupados/libres, "
         "alertas pendientes y conflictos de atraque. Incluye las próximas escalas y "
         "un resumen de alertas recientes.",
-        "05-operativa-kpis.png",
+        "06-operativa-kpis.png",
         "Panel ejecutivo del estado operativo del puerto",
         value="medir el pulso operativo del puerto en una pantalla")
 
-    _screen(story, "6 · Fondeo  ·  /operativa/fondeo",
+    _screen(story, "7 · Fondeo  ·  /operativa/fondeo",
         "Monitoriza los buques fondeados a la espera de muelle libre. Calcula el "
         "tiempo de espera acumulado por buque y separa los que ya tienen muelle "
         "asignado de los que no. Punto de coordinación entre agente y puerto.",
-        "06-fondeo.png",
+        "07-fondeo.png",
         "Buques en espera de muelle con tiempo de fondeo acumulado",
         value="coordinar la espera y reducir tiempos muertos en fondeo")
 
-    _screen(story, "7 · Atraques  ·  /operativa/atraques",
+    _screen(story, "8 · Atraques  ·  /operativa/atraques",
         "Estado de cada muelle: quién lo ocupa, cuándo quedará libre y qué buque "
         "entra después. Marca en rojo los conflictos (el siguiente arribo es antes "
         "de la liberación estimada) e identifica muelles infrautilizados y saturados.",
-        "07-atraques.png",
+        "08-atraques.png",
         "Estado y previsión de cada muelle, con conflictos resaltados",
         value="evitar choques de planificación y optimizar el uso de muelles")
 
-    _screen(story, "8 · Planificación de escalas  ·  /operativa/escalas",
-        "CRUD completo de escalas. El usuario crea escalas, las transiciona por su "
-        "ciclo (programada → llegando → atracada → operaciones → saliendo → salida), "
-        "asigna muelle y consulta sugerencias automáticas puntuadas por eslora, "
-        "calado, tipo y disponibilidad.",
-        "08-escalas.png",
-        "Gestión del ciclo de vida completo de una escala con sugerencia de muelle",
-        value="planificar escalas con apoyo de sugerencias automáticas")
+    _screen(story, "9 · Escalas  ·  /operativa/escalas",
+        "Consulta del ciclo de vida completo de cada escala (programada → "
+        "llegando → atracada → operaciones → saliendo → salida), sincronizada "
+        "desde ICE/PCS. Pantalla de solo lectura -sin creación, edición ni "
+        "asignación manual de muelle-: el detalle de cada escala incluye, a modo "
+        "orientativo, la sugerencia automática de muelle puntuada por IA según "
+        "eslora, calado, tipo y disponibilidad.",
+        "09-escalas.png",
+        "Consulta del ciclo de vida completo de una escala, con sugerencia de muelle por IA",
+        value="entender el estado real de cada escala con apoyo de sugerencias de IA")
 
     # --- Módulo Inteligencia Artificial ---
     open_sub_block(story, "Módulo Inteligencia Artificial")
@@ -752,23 +772,23 @@ def _bloque2(story, doc):
         ST_BODY_LEAD))
     story.append(Spacer(1, 3 * mm))
 
-    _screen(story, "9 · Asistente virtual  ·  /asistente-virtual",
+    _screen(story, "10 · Asistente virtual  ·  /asistente-virtual",
         "Chat a pantalla completa con historial de conversaciones persistente. "
         "El operador pregunta en lenguaje natural por escalas, atraques, alertas o "
         "buques, o por cómo usar la aplicación. La respuesta llega en streaming, "
         "token a token, con reconexión automática si se recarga la página a media "
         "respuesta.",
-        "09-asistente-virtual.png",
+        "10-asistente-virtual.png",
         "Asistente conversacional respondiendo con datos operativos reales",
         value="resolver una pregunta operativa sin navegar ninguna pantalla")
 
-    _screen(story, "10 · Resumen ejecutivo diario  ·  /resumen-diario",
+    _screen(story, "11 · Resumen ejecutivo diario  ·  /resumen-diario",
         "Lectura ejecutiva de la actividad del día -escalas abiertas, cierres de "
         "hoy, alertas sin reconocer, ocupación de atraques- convertida en una "
         "narrativa breve en español, generada bajo demanda. Los datos se calculan "
         "primero y el modelo solo redacta la narrativa sobre ese bloque fijo: la "
         "cifra nunca puede divergir del texto.",
-        "10-resumen-diario.png",
+        "11-resumen-diario.png",
         "Resumen ejecutivo diario generado automáticamente",
         value="el responsable de turno entiende el día en una lectura de segundos")
 
@@ -801,7 +821,7 @@ def _bloque3(story, doc):
 
     story.append(Paragraph("Posicionamiento Smart Port", ST_H3))
     story.append(Paragraph(
-        "Reunir visibilidad, planificación e inteligencia artificial en una sola "
+        "Reunir visibilidad, previsión e inteligencia artificial en una sola "
         "plataforma digital es exactamente el tipo de capacidad que define a un "
         "puerto inteligente: datos que se convierten en decisiones, sin fricción.",
         ST_BODY))
@@ -823,7 +843,8 @@ def _bloque3(story, doc):
             ["Congestión que se descubre cuando ya ocurre",
              "Previsión de ocupación a 72 h y alertas de conflicto anticipadas"],
             ["Planificación de muelles en hojas de cálculo",
-             "Escalas con ciclo de estados y sugerencia automática de muelle"],
+             "Visibilidad del ciclo de estados de cada escala y sugerencia "
+             "automática de muelle por IA, sobre datos sincronizados de ICE/PCS"],
             ["Recorrer cada pantalla para entender el estado del puerto",
              "Preguntar en lenguaje natural o leer el resumen ejecutivo diario"],
         ],
@@ -832,6 +853,195 @@ def _bloque3(story, doc):
     story.append(Paragraph(
         "«Ver, decidir y preguntar sobre la misma información, en tiempo real.»",
         ST_QUOTE))
+
+    open_sub_block(story, "Retorno de la inversión")
+    story.append(Paragraph("Retorno de la inversión, sin invertir en infraestructura", ST_H1))
+    story.append(hr(width=2, color=NAVY))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        "PortIO no pide a la Autoridad Portuaria sensores nuevos, obra civil ni "
+        "un proyecto de integración a medida: se apoya en el AIS que los propios "
+        "buques ya difunden y en los sistemas ICE/PCS que el puerto ya opera. El "
+        "retorno llega por la vía de la eficiencia operativa y la reducción del "
+        "coste de oportunidad, no por sustituir infraestructura existente.",
+        ST_BODY_LEAD))
+    story.append(Spacer(1, 4 * mm))
+    story.append(std_table(
+        header=["Inversión que se evita", "Por qué"],
+        rows=[
+            ["Sensores y hardware portuario adicional",
+             "Reutiliza el AIS que cada buque ya difunde y el ICE/PCS que el "
+             "puerto ya opera"],
+            ["Proyecto de integración a medida",
+             "Microservicios desplegables + API REST estándar; no requiere "
+             "personal técnico adicional del puerto"],
+            ["Licencias por puesto o hardware dedicado",
+             "Modelo de plataforma (SaaS/cloud): coste operativo variable (OPEX) "
+             "en lugar de inversión de capital (CAPEX)"],
+            ["Formación larga del personal operativo",
+             "Pantallas de consulta + asistente de IA en lenguaje natural: se "
+             "pregunta, no se aprende un ERP portuario nuevo"],
+        ],
+        col_widths=[CONTENT_W * 0.40, CONTENT_W * 0.60]))
+
+    story.append(Spacer(1, 6 * mm))
+    story.append(Paragraph("Información 24 horas, 7 días a la semana", ST_H3))
+    story.append(Paragraph(
+        "La plataforma recoge y correlaciona información del tráfico marítimo y "
+        "de la operativa portuaria de forma continua, sin pausas ni turnos: las "
+        "posiciones AIS se actualizan en vivo por WebSocket, el detector de "
+        "llegadas se ejecuta cada 60 segundos y las alertas de congestión se "
+        "generan automáticamente a cualquier hora, también fuera del horario de "
+        "oficina del puerto. El puerto nunca deja de observarse a sí mismo.",
+        ST_BODY))
+
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph("Una base objetiva para la decisión operativa", ST_H3))
+    story.append(Paragraph(
+        "Cada alerta, previsión y sugerencia se apoya en datos reales, no en "
+        "estimaciones manuales. Esto cambia el tipo de decisión que la Autoridad "
+        "Portuaria y los operadores pueden tomar:", ST_BODY))
+    story.append(std_table(
+        header=["Decisión operativa", "Qué aporta PortIO"],
+        rows=[
+            ["Priorizar qué atender primero",
+             "Alertas clasificadas por tipo y severidad, en tiempo real"],
+            ["Anticipar la saturación de un muelle",
+             "Previsión de ocupación a 72 h por ventanas horarias, con aviso temprano"],
+            ["Evaluar el muelle más adecuado para una escala",
+             "Sugerencia de IA puntuada por eslora, calado, tipo y disponibilidad"],
+            ["Decidir si una inversión en infraestructura es necesaria",
+             "Métricas objetivas de ocupación y rotación, medidas en el tiempo, "
+             "antes de comprometer presupuesto"],
+            ["Reportar a la autoridad, concesionarios o navieras",
+             "Datos consistentes y trazables, sin reporting manual"],
+        ],
+        col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]))
+
+    story.append(Spacer(1, 6 * mm))
+    story.append(Paragraph("Otros beneficios estratégicos", ST_H3))
+    story.append(li("<b>Sostenibilidad</b>: menos tiempo de fondeo y maniobra "
+                    "ociosos reduce el consumo de combustible y las emisiones "
+                    "asociadas a la espera."))
+    story.append(li("<b>Trazabilidad</b>: cada posición, escala y alerta queda "
+                    "registrada con marca de tiempo, útil para análisis "
+                    "post-incidente y auditorías."))
+    story.append(li("<b>Interoperabilidad sin duplicar la fuente</b>: la API de "
+                    "solo lectura permite que el ecosistema del puerto -PCS, "
+                    "dashboards corporativos, Autoridad Portuaria- consuma los "
+                    "mismos datos sin un segundo sistema maestro."))
+    story.append(li("<b>Riesgo de implantación bajo</b>: PortIO no sustituye ni "
+                    "migra datos del ICE/PCS existente, así que no hay corte de "
+                    "servicio ni proyecto de migración crítico."))
+    story.append(li("<b>Posicionamiento Smart Port</b>: visibilidad, previsión e "
+                    "IA sobre una misma capa de datos es exactamente la "
+                    "capacidad que distingue a un puerto inteligente frente a "
+                    "uno con sistemas dispersos."))
+
+    open_sub_block(story, "Modelo de datos")
+    story.append(Paragraph("Qué información recoge PortIO", ST_H1))
+    story.append(hr(width=2, color=NAVY))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        "Toda la información vive en una base de datos relacional única, con "
+        "aislamiento por empresa. Ninguna de estas tablas se edita libremente "
+        "desde la aplicación: cada una se alimenta de una fuente concreta -AIS, "
+        "ICE/PCS, la propia plataforma o el asistente de IA- y se consulta, "
+        "nunca se introduce a mano.", ST_BODY_LEAD))
+
+    story.append(Paragraph("Identidad y organización", ST_H3))
+    story.append(std_table(
+        header=["Tabla", "Qué almacena"],
+        rows=[
+            ["Empresas",
+             "Organizaciones que operan en la plataforma (modelo multi-tenant): "
+             "razón social y NIF."],
+            ["Usuarios y roles",
+             "Personas con acceso: nombre, correo corporativo, rol y estado "
+             "(activo/inactivo). Las contraseñas viven en un servicio de "
+             "identidad aislado del resto de datos."],
+            ["Claves de integración",
+             "Una clave por empresa para que sistemas externos (PCS, "
+             "dashboards corporativos) consuman la API de solo lectura."],
+        ],
+        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+
+    story.append(Paragraph("Tráfico marítimo (AIS)", ST_H3))
+    story.append(std_table(
+        header=["Tabla", "Qué almacena"],
+        rows=[
+            ["Ficha de buque",
+             "Identidad estática de cada buque: MMSI, IMO, nombre, tipo, "
+             "eslora, manga, calado, tonelaje, armador/gestor, indicativo de "
+             "llamada."],
+            ["Posición en vivo",
+             "Última posición conocida de cada buque: latitud/longitud, "
+             "velocidad, rumbo, destino declarado, ETA, calado actual. Se "
+             "actualiza en cada recepción AIS."],
+            ["Histórico de posiciones",
+             "Un registro por segmento de estado de navegación (fondeado, "
+             "atracado, navegando) y buque: permite reconstruir cuánto tiempo "
+             "pasó cada buque en cada estado."],
+            ["Suscripciones AIS",
+             "Qué buques y qué área geográfica se están siguiendo ahora mismo "
+             "en tiempo real."],
+        ],
+        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+
+    story.append(Paragraph("Escalas y atraques", ST_H3))
+    story.append(std_table(
+        header=["Tabla", "Qué almacena"],
+        rows=[
+            ["Escalas",
+             "Cada escala de buque: ETA/ETD declarada y estimada con nivel de "
+             "confianza, muelle, tipo de operación, carga y estado del ciclo "
+             "de vida. Sincronizada desde ICE/PCS - no editable desde la "
+             "plataforma."],
+            ["Muelles",
+             "Los muelles del puerto: código, nombre, tipo, eslora y calado "
+             "máximos admitidos, geometría real sobre el plano del puerto."],
+            ["Ocupación de muelle",
+             "El historial real de cada atraque: inicio y fin de la "
+             "ocupación, duración planificada frente a duración real - la "
+             "base de las métricas de rotación."],
+        ],
+        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+
+    story.append(Paragraph("Alertas operativas", ST_H3))
+    story.append(std_table(
+        header=["Tabla", "Qué almacena"],
+        rows=[
+            ["Alertas",
+             "Eventos generados automáticamente: entrada de un buque al área, "
+             "ETA actualizada, muelle liberado o reasignado, congestión "
+             "prevista - con severidad y estado de reconocimiento."],
+        ],
+        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+
+    story.append(Paragraph("Inteligencia artificial", ST_H3))
+    story.append(std_table(
+        header=["Tabla", "Qué almacena"],
+        rows=[
+            ["Conversaciones y mensajes",
+             "El historial del asistente de IA por usuario y empresa: la "
+             "pregunta y la respuesta de cada turno."],
+            ["Base de conocimiento vectorizada",
+             "La documentación funcional del producto, indexada para que el "
+             "asistente responda preguntas de uso - nunca datos operativos "
+             "del puerto."],
+            ["Control de ingesta",
+             "Qué documentación ya se indexó, para no duplicarla cada vez que "
+             "el servicio se reinicia."],
+        ],
+        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+
+    story.append(Paragraph("Identidad y sesiones", ST_H3))
+    story.append(Paragraph(
+        "Un servicio de autenticación aislado guarda las credenciales "
+        "(contraseña cifrada) y las sesiones/tokens de acceso bajo el "
+        "estándar OAuth2/OIDC, en un esquema de base de datos separado del "
+        "resto de datos operativos.",
+        ST_NOTE))
 
     open_sub_block(story, "API abierta")
     story.append(Paragraph("API abierta", ST_H1))
@@ -878,6 +1088,68 @@ def _bloque3(story, doc):
         "minuto y origen) para proteger la plataforma frente a picos de tráfico.",
         ST_NOTE))
 
+    open_sub_block(story, "Próximamente: IA predictiva")
+    story.append(Paragraph("Próximamente: IA predictiva para la ETA", ST_H1))
+    story.append(hr(width=2, color=NAVY))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        "En la hoja de ruta de PortIO: evolucionar el cálculo de ETA de un motor "
+        "heurístico a un <b>modelo de IA predictiva</b>, entrenado con el "
+        "histórico real de tráfico con destino al puerto, para anticipar la "
+        "llegada de cada buque con más margen y precisión. Esta funcionalidad "
+        "está en desarrollo -no forma parte del producto actual- y se presenta "
+        "aquí como planteamiento.", ST_BODY_LEAD))
+
+    story.append(Paragraph("De la heurística al modelo entrenado", ST_H3))
+    story.append(Paragraph(
+        "El cálculo de ETA de hoy (<i>EtaCalculatorService</i>) combina la "
+        "posición y velocidad AIS con la ETA declarada por el buque, ponderadas "
+        "según la distancia al puerto, y asigna un nivel de confianza (alta / "
+        "media / baja). Es una regla fija, igual para cualquier puerto. El "
+        "modelo predictivo sustituye esa regla por un sistema entrenado con los "
+        "patrones reales de tráfico hacia el puerto -tipo de buque, época del "
+        "año, procedencia, comportamiento histórico de cada ruta- para una "
+        "estimación específica de este puerto, no genérica.", ST_BODY))
+
+    story.append(Paragraph("Qué cambia para la Autoridad Portuaria", ST_H3))
+    story.append(Paragraph(
+        "Una ETA más fiable y con más antelación no es una mejora cosmética: "
+        "cambia el momento en el que se puede actuar. Hoy la plataforma "
+        "reacciona cuando el buque ya está a pocas millas del puerto (detección "
+        "por proximidad AIS); con IA predictiva, la anticipación llega mucho "
+        "antes de esa ventana.", ST_BODY))
+    story.append(std_table(
+        header=["Antes de la llegada", "Con IA predictiva"],
+        rows=[
+            ["Planificar practicaje y remolcadores",
+             "Previsión con más antelación, sobre una ETA más estable"],
+            ["Anticipar la asignación de muelle",
+             "Más margen para evaluar la sugerencia de muelle antes de que el "
+             "buque esté cerca"],
+            ["Prepararse para congestión futura",
+             "Previsión de ocupación a 72 h apoyada en una ETA que aprende, no "
+             "en una regla fija"],
+            ["Reaccionar cuando el buque entra en el área",
+             "Anticipar movimientos de operación antes de esa entrada"],
+        ],
+        col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]))
+
+    story.append(Spacer(1, 3 * mm))
+    story.append(Paragraph("Mejora con cada escala", ST_H3))
+    story.append(Paragraph(
+        "El modelo aprende de la propia actividad del puerto: cuantas más "
+        "escalas reales se acumulen -llegada declarada, posición AIS real y "
+        "hora de llegada efectiva-, más preciso se vuelve. No es un modelo "
+        "genérico importado de otro puerto, sino uno que se afina con el "
+        "tráfico real de este puerto.", ST_BODY))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph(
+        "<b>Alcance de esta propuesta.</b> No forma parte de la plataforma "
+        "disponible hoy. Se incluye en esta presentación como el siguiente paso "
+        "natural del módulo de inteligencia artificial: de responder preguntas "
+        "sobre el estado actual del puerto, a anticipar su estado futuro.",
+        ST_NOTE))
+
 
 def _cierre(story, doc):
     story.append(NextPageTemplate("content"))
@@ -893,7 +1165,7 @@ def _cierre(story, doc):
     story.append(hr(width=1.5, color=CYAN))
     story.append(Spacer(1, 6 * mm))
     story.append(Paragraph(
-        "demo.portio.es",
+        "portio.es",
         ParagraphStyle("EndUrl", parent=styles["Normal"], fontName="Helvetica-Bold",
                        fontSize=12, textColor=NAVY, alignment=TA_CENTER)))
 

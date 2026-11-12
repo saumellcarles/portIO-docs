@@ -7,9 +7,9 @@ funcionales:
 
 1. **Módulo marítimo** — seguimiento AIS en tiempo real, ficha de buque,
    historial de posiciones segmentado por estado de navegación.
-2. **Operaciones portuarias** — escalas (port calls), atraques (berths),
-   operaciones de atraque, cálculo de ETA, alertas de congestión y
-   operaciones.
+2. **Operaciones portuarias** — consulta de escalas (port calls), atraques
+   (berths) y operaciones de atraque sincronizadas desde ICE/PCS, cálculo de
+   ETA sobre AIS y alertas de congestión y operaciones.
 3. **API pública portuaria** — acceso con API-key al historial de posiciones
    de buques para la Autoridad Portuaria.
 
@@ -21,6 +21,18 @@ identidad OAuth2/OIDC, gateway.
    sobre los servicios de dominio, y sobre el uso de la aplicación vía
    búsqueda semántica (pgvector) en la documentación funcional. Ver
    sección 11.
+
+> **Nota sobre el módulo de operaciones portuarias**: es de **solo
+> consulta**. La plataforma no es un sistema de gestión de escalas o
+> atraques — no expone creación, edición, asignación de muelle ni borrado
+> de una escala, ni manual ni por API. Los datos de escala/atraque (buque,
+> ETA, muelle, estado) llegan de los sistemas ICE/PCS del puerto y de AIS; el
+> único estado que esta plataforma deriva por sí misma es la transición
+> automática `SCHEDULED → ARRIVING` (`VesselArrivalDetector`, por proximidad
+> AIS) y el recálculo de ETA. Esta decisión de producto es deliberada: el
+> valor de portIO está en la capa de visibilidad, previsión y asistente de
+> IA sobre esos datos, no en duplicar la gestión operativa que ya hace el
+> ICE/PCS del puerto.
 
 > **Nota sobre el módulo de emisiones MRV**: existió en una fase anterior de
 > la plataforma (cálculo Tier 3 EMEP/EEA) pero **se eliminó por completo**

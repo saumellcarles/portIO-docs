@@ -5,7 +5,7 @@ frontend (`portIO-frontend`). Excluye API (`/integraciones/api`) y pantallas
 auxiliares (perfil, empresa, callback de auth) — configuración de cuenta,
 no funcionalidad operativa.
 
-Tarragona se usa como puerto de referencia (centro `41.095, 1.225`, radio 10 km).
+Se usa un puerto de referencia (centro `41.095, 1.225`, radio 10 km).
 
 ---
 
@@ -13,7 +13,7 @@ Tarragona se usa como puerto de referencia (centro `41.095, 1.225`, radio 10 km)
 
 0. [Panel](#panel) — resumen ejecutivo al entrar
 1. [Módulo Marítimo](#módulo-marítimo) — visibilidad operacional en tiempo real
-2. [Módulo Operativa](#módulo-operativa) — planificación y gestión de escalas
+2. [Módulo Operativa](#módulo-operativa) — consulta de escalas, atraques y fondeo
 3. [Módulo Inteligencia Artificial](#módulo-inteligencia-artificial) — asistente conversacional y resumen diario
 
 ---
@@ -117,13 +117,41 @@ indicador visual de saturación.
 
 ---
 
+### 5. Historial — `/buques/historial`
+
+**Propósito.** Catálogo de todos los buques que el sistema ha visto alguna
+vez (tabla `vessel`), con acceso al histórico completo de posiciones AIS de
+cada uno (tabla `vessel_history`). El listado se pagina en servidor — la
+tabla `vessel` solo crece. Al entrar en el detalle de un buque se muestran
+sus datos estáticos, los totales de tiempo por estado (atracado / fondeado /
+en tránsito) y la distancia recorrida calculados sobre **todo** su
+histórico, un mapa con la trayectoria completa trazada y la tabla paginada
+de cada posición registrada, de la más reciente a la más antigua.
+
+**Datos.**
+- `GET /api/vessels/history?page&size` — catálogo paginado de buques
+- `GET /api/vessels/history/{id}?page&size` — histórico paginado de un buque
+  (`id` = IMO si el buque tiene uno, MMSI en caso contrario)
+
+**Backend.** Tabla `vessel` (catálogo) y `vessel_history` (posiciones). Los
+totales, los segmentos por estado y la línea de trayectoria (`trackLine`,
+solo lat/lon) se calculan sobre todas las filas del buque; únicamente la
+tabla de registros (`track`) que ve el operador se pagina — así el mapa y
+los totales nunca quedan incompletos aunque el histórico sea largo.
+
+---
+
 ## Módulo Operativa
 
-Gestión y planificación de escalas, muelles y fondeo. Aquí el operador deja
-de "ver" y empieza a "decidir": crear escalas, asignar muelles, transicionar
-estados.
+Consulta de escalas, muelles y fondeo. El módulo no gestiona: no crea
+escalas, no asigna muelles ni transiciona estados desde la aplicación. Los
+datos (buque, ETA, muelle, estado) llegan sincronizados desde ICE/PCS y de
+AIS; la plataforma los muestra, los correlaciona y añade una capa de
+inteligencia (previsión de ocupación, sugerencia de muelle, alertas de
+conflicto) para apoyar la decisión operativa, sin sustituir al sistema de
+gestión del puerto.
 
-### 5. KPIs Operativos — `/operativa`
+### 6. KPIs Operativos — `/operativa`
 
 **Propósito.** Panel ejecutivo de un vistazo: cuántos buques activos, cuántos
 muelles ocupados/libres, alertas pendientes, conflictos de atraque
@@ -139,7 +167,7 @@ detectados. Incluye las próximas 6 escalas y un resumen de alertas recientes.
 
 ---
 
-### 6. Fondeo — `/operativa/fondeo`
+### 7. Fondeo — `/operativa/fondeo`
 
 **Propósito.** Monitorea buques en estado ARRIVING (han llegado al área y
 están fondeados a la espera de muelle libre). Calcula tiempo de espera
@@ -154,7 +182,7 @@ operador del puerto.
 
 ---
 
-### 7. Atraques — `/operativa/atraques`
+### 8. Atraques — `/operativa/atraques`
 
 **Propósito.** Estado de cada muelle del puerto: quién lo ocupa ahora, cuándo
 se prevé que quede libre, qué buque será el siguiente en entrar. Marca en
@@ -171,25 +199,23 @@ saturados.
 
 ---
 
-### 8. Escalas — `/operativa/escalas`
+### 9. Escalas — `/operativa/escalas`
 
-**Propósito.** CRUD completo de port calls. El usuario crea nuevas escalas
-(nombre buque, ETA/ETD, muelle, tipo de operación, carga), las transiciona
-por el ciclo SCHEDULED → ARRIVING → BERTHED → OPERATIONS → DEPARTING →
-DEPARTED, asigna muelle y consulta sugerencias automáticas con puntuación
-basada en eslora, calado, tipo y disponibilidad.
+**Propósito.** Consulta de las escalas (port calls) sincronizadas desde
+ICE/PCS: buque, ETA declarada/estimada con nivel de confianza, ETD, muelle,
+tipo de operación, carga y estado dentro del ciclo SCHEDULED → ARRIVING →
+BERTHED → OPERATIONS → DEPARTING → DEPARTED. No hay creación, edición,
+asignación de muelle ni borrado desde la aplicación — es una pantalla de
+solo lectura. El detalle de cada escala incluye, a modo orientativo, la
+sugerencia de muelle calculada por el motor de recomendación (IA) a partir
+de eslora, calado, tipo y disponibilidad; es información de apoyo a la
+decisión del operador del puerto, no una asignación.
 
 **Datos.**
 - `usePortCalls()` — listado
-- `useBerths()` — opciones de muelle
-- `useCreatePortCall()` → `POST /api/operations/calls`
-- `useUpdatePortCall(id)` → `PUT /api/operations/calls/{id}`
-- `useDeletePortCall()` → `DELETE /api/operations/calls/{id}`
-- `useTransitionStatus(id)` → `PATCH /api/operations/calls/{id}/status`
-- `useAssignBerth(id)` → `PATCH /api/operations/calls/{id}/assign-berth`
 - `useBerthSuggestions(callId)` → `GET /api/operations/calls/{id}/berth-suggestions`
 
-**DTOs.** `PortCall`, `CreatePortCallRequest`, `BerthSuggestion`.
+**DTOs.** `PortCall`, `BerthSuggestion`.
 
 ---
 
@@ -209,7 +235,7 @@ secciones 9-11 de este fichero ya no existe** — se retiró por completo del
 backend (`portIO-backend`, migración `V5__drop_emissions.sql`); este módulo
 de IA ocupa su lugar en la barra lateral.
 
-### 9. Asistente virtual — `/asistente-virtual`
+### 10. Asistente virtual — `/asistente-virtual`
 
 **Propósito.** Chat a pantalla completa con historial de conversaciones
 persistente. El operador pregunta en lenguaje natural por escalas,
@@ -238,7 +264,7 @@ modelo ni del usuario.
 
 ---
 
-### 10. Resumen diario — `/resumen-diario`
+### 11. Resumen diario — `/resumen-diario`
 
 **Propósito.** Lectura ejecutiva de la actividad del día — escalas
 abiertas, cierres de hoy, alertas sin reconocer, ocupación de atraques —

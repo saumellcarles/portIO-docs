@@ -57,7 +57,8 @@ evaluación y para su revisión.
 1. Gestionar el acceso de usuarios (administradores de empresa portuaria)
    a la plataforma de operativa.
 2. Facilitar el seguimiento de buques en tiempo real y el historial de
-   posiciones AIS para la gestión de escalas y atraques.
+   posiciones AIS para la consulta de escalas y atraques — la plataforma no
+   gestiona ni asigna, solo consulta datos sincronizados desde ICE/PCS.
 3. Proporcionar datos de historial de posiciones de buques a la Autoridad
    Portuaria a través de la API pública (acceso con API-key por organización).
 
@@ -69,7 +70,7 @@ evaluación y para su revisión.
 | Credenciales | Contraseña BCrypt | Alta del usuario | Sí (hash, no texto claro) |
 | Datos de buque | MMSI, IMO, nombre del buque, tipo, tonelaje | AIS / fuentes marítimas públicas | No — son datos del buque como entidad |
 | Posición AIS | Latitud, longitud, velocidad, rumbo, estado de navegación | Proveedor AIS | No — datos del buque; radiodifundidos públicamente |
-| Escala / atraque | Nombre buque, MMSI, muelle asignado, tiempos ETA/ETD | Operadores de la empresa | No — datos operacionales del buque |
+| Escala / atraque | Nombre buque, MMSI, muelle, tiempos ETA/ETD | Sincronizado desde ICE/PCS del puerto | No — datos operacionales del buque |
 | Conversaciones con el asistente de IA | Texto de las preguntas y respuestas (`ai.conversation`/`ai.message`) | Interacción del usuario con `portIO-ai` | Sí — puede contener texto libre escrito por el usuario |
 | Alertas operacionales | Tipo de alerta, muelle, MMSI | Generado por la plataforma | No |
 
