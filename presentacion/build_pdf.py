@@ -641,11 +641,14 @@ def _bloque1(story, doc):
 # ----- Bloque 2 · Recorrido -----
 
 def _screen(story, title, body, filename, caption, value=None, bullets=None):
+    # Title + body + screenshot + caption travel as one block so a page
+    # break never strands the heading/description on one page with its own
+    # screenshot (and the gap that leaves) pushed to the next.
     parts = [Paragraph(title, ST_H3), Paragraph(body, ST_BODY)]
     for b in (bullets or []):
         parts.append(li(b))
+    parts += screenshot(filename, caption, value=value)
     story.append(KeepTogether(parts))
-    story += screenshot(filename, caption, value=value)
 
 
 def _bloque2(story, doc):
@@ -813,42 +816,47 @@ def _bloque3(story, doc):
         "que conecta lo que el puerto ya recibe (tráfico AIS) con lo que necesita "
         "decidir y reportar. Su valor está en la integración.", ST_BODY_LEAD))
 
-    story.append(Paragraph("Tiempo real, no informes de ayer", ST_H3))
-    story.append(Paragraph(
-        "La posición de los buques llega por WebSocket y se refleja en el mapa y en "
-        "los KPIs sin recargar. Las decisiones se toman sobre el estado actual del "
-        "puerto, no sobre una foto antigua.", ST_BODY))
+    story.append(KeepTogether([
+        Paragraph("Tiempo real, no informes de ayer", ST_H3),
+        Paragraph(
+            "La posición de los buques llega por WebSocket y se refleja en el mapa y en "
+            "los KPIs sin recargar. Las decisiones se toman sobre el estado actual del "
+            "puerto, no sobre una foto antigua.", ST_BODY),
+    ]))
 
-    story.append(Paragraph("Posicionamiento Smart Port", ST_H3))
-    story.append(Paragraph(
-        "Reunir visibilidad, previsión e inteligencia artificial en una sola "
-        "plataforma digital es exactamente el tipo de capacidad que define a un "
-        "puerto inteligente: datos que se convierten en decisiones, sin fricción.",
-        ST_BODY))
+    story.append(KeepTogether([
+        Paragraph("Posicionamiento Smart Port", ST_H3),
+        Paragraph(
+            "Reunir visibilidad, previsión e inteligencia artificial en una sola "
+            "plataforma digital es exactamente el tipo de capacidad que define a un "
+            "puerto inteligente: datos que se convierten en decisiones, sin fricción.",
+            ST_BODY),
+    ]))
 
-    story.append(Paragraph("Respuestas, no paneles que interpretar", ST_H3))
-    story.append(Paragraph(
-        "El asistente de IA no sustituye los paneles operativos: los complementa. "
-        "Un responsable de turno pregunta en lenguaje natural y recibe la "
-        "respuesta apoyada en los datos reales del sistema -nunca una cifra "
-        "generada por el modelo-, o el resumen ejecutivo del día sin tener que "
-        "recorrer cada pantalla.", ST_BODY))
-    story.append(Spacer(1, 4 * mm))
-
-    story.append(std_table(
-        header=["Antes", "Con PortIO"],
-        rows=[
-            ["AIS disperso y sin contexto operativo",
-             "Una capa única en vivo: mapa, tablas y KPIs sobre la misma fuente"],
-            ["Congestión que se descubre cuando ya ocurre",
-             "Previsión de ocupación a 72 h y alertas de conflicto anticipadas"],
-            ["Planificación de muelles en hojas de cálculo",
-             "Visibilidad del ciclo de estados de cada escala y sugerencia "
-             "automática de muelle por IA, sobre datos sincronizados de ICE/PCS"],
-            ["Recorrer cada pantalla para entender el estado del puerto",
-             "Preguntar en lenguaje natural o leer el resumen ejecutivo diario"],
-        ],
-        col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]))
+    story.append(KeepTogether([
+        Paragraph("Respuestas, no paneles que interpretar", ST_H3),
+        Paragraph(
+            "El asistente de IA no sustituye los paneles operativos: los complementa. "
+            "Un responsable de turno pregunta en lenguaje natural y recibe la "
+            "respuesta apoyada en los datos reales del sistema -nunca una cifra "
+            "generada por el modelo-, o el resumen ejecutivo del día sin tener que "
+            "recorrer cada pantalla.", ST_BODY),
+        Spacer(1, 4 * mm),
+        std_table(
+            header=["Antes", "Con PortIO"],
+            rows=[
+                ["AIS disperso y sin contexto operativo",
+                 "Una capa única en vivo: mapa, tablas y KPIs sobre la misma fuente"],
+                ["Congestión que se descubre cuando ya ocurre",
+                 "Previsión de ocupación a 72 h y alertas de conflicto anticipadas"],
+                ["Planificación de muelles en hojas de cálculo",
+                 "Visibilidad del ciclo de estados de cada escala y sugerencia "
+                 "automática de muelle por IA, sobre datos sincronizados de ICE/PCS"],
+                ["Recorrer cada pantalla para entender el estado del puerto",
+                 "Preguntar en lenguaje natural o leer el resumen ejecutivo diario"],
+            ],
+            col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]),
+    ]))
     story.append(Spacer(1, 6 * mm))
     story.append(Paragraph(
         "«Ver, decidir y preguntar sobre la misma información, en tiempo real.»",
@@ -885,58 +893,64 @@ def _bloque3(story, doc):
         col_widths=[CONTENT_W * 0.40, CONTENT_W * 0.60]))
 
     story.append(Spacer(1, 6 * mm))
-    story.append(Paragraph("Información 24 horas, 7 días a la semana", ST_H3))
-    story.append(Paragraph(
-        "La plataforma recoge y correlaciona información del tráfico marítimo y "
-        "de la operativa portuaria de forma continua, sin pausas ni turnos: las "
-        "posiciones AIS se actualizan en vivo por WebSocket, el detector de "
-        "llegadas se ejecuta cada 60 segundos y las alertas de congestión se "
-        "generan automáticamente a cualquier hora, también fuera del horario de "
-        "oficina del puerto. El puerto nunca deja de observarse a sí mismo.",
-        ST_BODY))
+    story.append(KeepTogether([
+        Paragraph("Información 24 horas, 7 días a la semana", ST_H3),
+        Paragraph(
+            "La plataforma recoge y correlaciona información del tráfico marítimo y "
+            "de la operativa portuaria de forma continua, sin pausas ni turnos: las "
+            "posiciones AIS se actualizan en vivo por WebSocket, el detector de "
+            "llegadas se ejecuta cada 60 segundos y las alertas de congestión se "
+            "generan automáticamente a cualquier hora, también fuera del horario de "
+            "oficina del puerto. El puerto nunca deja de observarse a sí mismo.",
+            ST_BODY),
+    ]))
 
     story.append(Spacer(1, 2 * mm))
-    story.append(Paragraph("Una base objetiva para la decisión operativa", ST_H3))
-    story.append(Paragraph(
-        "Cada alerta, previsión y sugerencia se apoya en datos reales, no en "
-        "estimaciones manuales. Esto cambia el tipo de decisión que la Autoridad "
-        "Portuaria y los operadores pueden tomar:", ST_BODY))
-    story.append(std_table(
-        header=["Decisión operativa", "Qué aporta PortIO"],
-        rows=[
-            ["Priorizar qué atender primero",
-             "Alertas clasificadas por tipo y severidad, en tiempo real"],
-            ["Anticipar la saturación de un muelle",
-             "Previsión de ocupación a 72 h por ventanas horarias, con aviso temprano"],
-            ["Evaluar el muelle más adecuado para una escala",
-             "Sugerencia de IA puntuada por eslora, calado, tipo y disponibilidad"],
-            ["Decidir si una inversión en infraestructura es necesaria",
-             "Métricas objetivas de ocupación y rotación, medidas en el tiempo, "
-             "antes de comprometer presupuesto"],
-            ["Reportar a la autoridad, concesionarios o navieras",
-             "Datos consistentes y trazables, sin reporting manual"],
-        ],
-        col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]))
+    story.append(KeepTogether([
+        Paragraph("Una base objetiva para la decisión operativa", ST_H3),
+        Paragraph(
+            "Cada alerta, previsión y sugerencia se apoya en datos reales, no en "
+            "estimaciones manuales. Esto cambia el tipo de decisión que la Autoridad "
+            "Portuaria y los operadores pueden tomar:", ST_BODY),
+        std_table(
+            header=["Decisión operativa", "Qué aporta PortIO"],
+            rows=[
+                ["Priorizar qué atender primero",
+                 "Alertas clasificadas por tipo y severidad, en tiempo real"],
+                ["Anticipar la saturación de un muelle",
+                 "Previsión de ocupación a 72 h por ventanas horarias, con aviso temprano"],
+                ["Evaluar el muelle más adecuado para una escala",
+                 "Sugerencia de IA puntuada por eslora, calado, tipo y disponibilidad"],
+                ["Decidir si una inversión en infraestructura es necesaria",
+                 "Métricas objetivas de ocupación y rotación, medidas en el tiempo, "
+                 "antes de comprometer presupuesto"],
+                ["Reportar a la autoridad, concesionarios o navieras",
+                 "Datos consistentes y trazables, sin reporting manual"],
+            ],
+            col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]),
+    ]))
 
     story.append(Spacer(1, 6 * mm))
-    story.append(Paragraph("Otros beneficios estratégicos", ST_H3))
-    story.append(li("<b>Sostenibilidad</b>: menos tiempo de fondeo y maniobra "
-                    "ociosos reduce el consumo de combustible y las emisiones "
-                    "asociadas a la espera."))
-    story.append(li("<b>Trazabilidad</b>: cada posición, escala y alerta queda "
-                    "registrada con marca de tiempo, útil para análisis "
-                    "post-incidente y auditorías."))
-    story.append(li("<b>Interoperabilidad sin duplicar la fuente</b>: la API de "
-                    "solo lectura permite que el ecosistema del puerto -PCS, "
-                    "dashboards corporativos, Autoridad Portuaria- consuma los "
-                    "mismos datos sin un segundo sistema maestro."))
-    story.append(li("<b>Riesgo de implantación bajo</b>: PortIO no sustituye ni "
-                    "migra datos del ICE/PCS existente, así que no hay corte de "
-                    "servicio ni proyecto de migración crítico."))
-    story.append(li("<b>Posicionamiento Smart Port</b>: visibilidad, previsión e "
-                    "IA sobre una misma capa de datos es exactamente la "
-                    "capacidad que distingue a un puerto inteligente frente a "
-                    "uno con sistemas dispersos."))
+    story.append(KeepTogether([
+        Paragraph("Otros beneficios estratégicos", ST_H3),
+        li("<b>Sostenibilidad</b>: menos tiempo de fondeo y maniobra "
+           "ociosos reduce el consumo de combustible y las emisiones "
+           "asociadas a la espera."),
+        li("<b>Trazabilidad</b>: cada posición, escala y alerta queda "
+           "registrada con marca de tiempo, útil para análisis "
+           "post-incidente y auditorías."),
+        li("<b>Interoperabilidad sin duplicar la fuente</b>: la API de "
+           "solo lectura permite que el ecosistema del puerto -PCS, "
+           "dashboards corporativos, Autoridad Portuaria- consuma los "
+           "mismos datos sin un segundo sistema maestro."),
+        li("<b>Riesgo de implantación bajo</b>: PortIO no sustituye ni "
+           "migra datos del ICE/PCS existente, así que no hay corte de "
+           "servicio ni proyecto de migración crítico."),
+        li("<b>Posicionamiento Smart Port</b>: visibilidad, previsión e "
+           "IA sobre una misma capa de datos es exactamente la "
+           "capacidad que distingue a un puerto inteligente frente a "
+           "uno con sistemas dispersos."),
+    ]))
 
     open_sub_block(story, "Modelo de datos")
     story.append(Paragraph("Qué información recoge PortIO", ST_H1))
@@ -949,99 +963,111 @@ def _bloque3(story, doc):
         "ICE/PCS, la propia plataforma o el asistente de IA- y se consulta, "
         "nunca se introduce a mano.", ST_BODY_LEAD))
 
-    story.append(Paragraph("Identidad y organización", ST_H3))
-    story.append(std_table(
-        header=["Tabla", "Qué almacena"],
-        rows=[
-            ["Empresas",
-             "Organizaciones que operan en la plataforma (modelo multi-tenant): "
-             "razón social y NIF."],
-            ["Usuarios y roles",
-             "Personas con acceso: nombre, correo corporativo, rol y estado "
-             "(activo/inactivo). Las contraseñas viven en un servicio de "
-             "identidad aislado del resto de datos."],
-            ["Claves de integración",
-             "Una clave por empresa para que sistemas externos (PCS, "
-             "dashboards corporativos) consuman la API de solo lectura."],
-        ],
-        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+    story.append(KeepTogether([
+        Paragraph("Identidad y organización", ST_H3),
+        std_table(
+            header=["Tabla", "Qué almacena"],
+            rows=[
+                ["Empresas",
+                 "Organizaciones que operan en la plataforma (modelo multi-tenant): "
+                 "razón social y NIF."],
+                ["Usuarios y roles",
+                 "Personas con acceso: nombre, correo corporativo, rol y estado "
+                 "(activo/inactivo). Las contraseñas viven en un servicio de "
+                 "identidad aislado del resto de datos."],
+                ["Claves de integración",
+                 "Una clave por empresa para que sistemas externos (PCS, "
+                 "dashboards corporativos) consuman la API de solo lectura."],
+            ],
+            col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]),
+    ]))
 
-    story.append(Paragraph("Tráfico marítimo (AIS)", ST_H3))
-    story.append(std_table(
-        header=["Tabla", "Qué almacena"],
-        rows=[
-            ["Ficha de buque",
-             "Identidad estática de cada buque: MMSI, IMO, nombre, tipo, "
-             "eslora, manga, calado, tonelaje, armador/gestor, indicativo de "
-             "llamada."],
-            ["Posición en vivo",
-             "Última posición conocida de cada buque: latitud/longitud, "
-             "velocidad, rumbo, destino declarado, ETA, calado actual. Se "
-             "actualiza en cada recepción AIS."],
-            ["Histórico de posiciones",
-             "Un registro por segmento de estado de navegación (fondeado, "
-             "atracado, navegando) y buque: permite reconstruir cuánto tiempo "
-             "pasó cada buque en cada estado."],
-            ["Suscripciones AIS",
-             "Qué buques y qué área geográfica se están siguiendo ahora mismo "
-             "en tiempo real."],
-        ],
-        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+    story.append(KeepTogether([
+        Paragraph("Tráfico marítimo (AIS)", ST_H3),
+        std_table(
+            header=["Tabla", "Qué almacena"],
+            rows=[
+                ["Ficha de buque",
+                 "Identidad estática de cada buque: MMSI, IMO, nombre, tipo, "
+                 "eslora, manga, calado, tonelaje, armador/gestor, indicativo de "
+                 "llamada."],
+                ["Posición en vivo",
+                 "Última posición conocida de cada buque: latitud/longitud, "
+                 "velocidad, rumbo, destino declarado, ETA, calado actual. Se "
+                 "actualiza en cada recepción AIS."],
+                ["Histórico de posiciones",
+                 "Un registro por segmento de estado de navegación (fondeado, "
+                 "atracado, navegando) y buque: permite reconstruir cuánto tiempo "
+                 "pasó cada buque en cada estado."],
+                ["Suscripciones AIS",
+                 "Qué buques y qué área geográfica se están siguiendo ahora mismo "
+                 "en tiempo real."],
+            ],
+            col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]),
+    ]))
 
-    story.append(Paragraph("Escalas y atraques", ST_H3))
-    story.append(std_table(
-        header=["Tabla", "Qué almacena"],
-        rows=[
-            ["Escalas",
-             "Cada escala de buque: ETA/ETD declarada y estimada con nivel de "
-             "confianza, muelle, tipo de operación, carga y estado del ciclo "
-             "de vida. Sincronizada desde ICE/PCS - no editable desde la "
-             "plataforma."],
-            ["Muelles",
-             "Los muelles del puerto: código, nombre, tipo, eslora y calado "
-             "máximos admitidos, geometría real sobre el plano del puerto."],
-            ["Ocupación de muelle",
-             "El historial real de cada atraque: inicio y fin de la "
-             "ocupación, duración planificada frente a duración real - la "
-             "base de las métricas de rotación."],
-        ],
-        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+    story.append(KeepTogether([
+        Paragraph("Escalas y atraques", ST_H3),
+        std_table(
+            header=["Tabla", "Qué almacena"],
+            rows=[
+                ["Escalas",
+                 "Cada escala de buque: ETA/ETD declarada y estimada con nivel de "
+                 "confianza, muelle, tipo de operación, carga y estado del ciclo "
+                 "de vida. Sincronizada desde ICE/PCS - no editable desde la "
+                 "plataforma."],
+                ["Muelles",
+                 "Los muelles del puerto: código, nombre, tipo, eslora y calado "
+                 "máximos admitidos, geometría real sobre el plano del puerto."],
+                ["Ocupación de muelle",
+                 "El historial real de cada atraque: inicio y fin de la "
+                 "ocupación, duración planificada frente a duración real - la "
+                 "base de las métricas de rotación."],
+            ],
+            col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]),
+    ]))
 
-    story.append(Paragraph("Alertas operativas", ST_H3))
-    story.append(std_table(
-        header=["Tabla", "Qué almacena"],
-        rows=[
-            ["Alertas",
-             "Eventos generados automáticamente: entrada de un buque al área, "
-             "ETA actualizada, muelle liberado o reasignado, congestión "
-             "prevista - con severidad y estado de reconocimiento."],
-        ],
-        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+    story.append(KeepTogether([
+        Paragraph("Alertas operativas", ST_H3),
+        std_table(
+            header=["Tabla", "Qué almacena"],
+            rows=[
+                ["Alertas",
+                 "Eventos generados automáticamente: entrada de un buque al área, "
+                 "ETA actualizada, muelle liberado o reasignado, congestión "
+                 "prevista - con severidad y estado de reconocimiento."],
+            ],
+            col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]),
+    ]))
 
-    story.append(Paragraph("Inteligencia artificial", ST_H3))
-    story.append(std_table(
-        header=["Tabla", "Qué almacena"],
-        rows=[
-            ["Conversaciones y mensajes",
-             "El historial del asistente de IA por usuario y empresa: la "
-             "pregunta y la respuesta de cada turno."],
-            ["Base de conocimiento vectorizada",
-             "La documentación funcional del producto, indexada para que el "
-             "asistente responda preguntas de uso - nunca datos operativos "
-             "del puerto."],
-            ["Control de ingesta",
-             "Qué documentación ya se indexó, para no duplicarla cada vez que "
-             "el servicio se reinicia."],
-        ],
-        col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]))
+    story.append(KeepTogether([
+        Paragraph("Inteligencia artificial", ST_H3),
+        std_table(
+            header=["Tabla", "Qué almacena"],
+            rows=[
+                ["Conversaciones y mensajes",
+                 "El historial del asistente de IA por usuario y empresa: la "
+                 "pregunta y la respuesta de cada turno."],
+                ["Base de conocimiento vectorizada",
+                 "La documentación funcional del producto, indexada para que el "
+                 "asistente responda preguntas de uso - nunca datos operativos "
+                 "del puerto."],
+                ["Control de ingesta",
+                 "Qué documentación ya se indexó, para no duplicarla cada vez que "
+                 "el servicio se reinicia."],
+            ],
+            col_widths=[CONTENT_W * 0.28, CONTENT_W * 0.72]),
+    ]))
 
-    story.append(Paragraph("Identidad y sesiones", ST_H3))
-    story.append(Paragraph(
-        "Un servicio de autenticación aislado guarda las credenciales "
-        "(contraseña cifrada) y las sesiones/tokens de acceso bajo el "
-        "estándar OAuth2/OIDC, en un esquema de base de datos separado del "
-        "resto de datos operativos.",
-        ST_NOTE))
+    story.append(KeepTogether([
+        Paragraph("Identidad y sesiones", ST_H3),
+        Paragraph(
+            "Un servicio de autenticación aislado guarda las credenciales "
+            "(contraseña cifrada) y las sesiones/tokens de acceso bajo el "
+            "estándar OAuth2/OIDC, en un esquema de base de datos separado del "
+            "resto de datos operativos.",
+            ST_NOTE),
+    ]))
 
     open_sub_block(story, "API abierta")
     story.append(Paragraph("API abierta", ST_H1))
@@ -1070,16 +1096,18 @@ def _bloque3(story, doc):
         ],
         col_widths=[CONTENT_W * 0.30, CONTENT_W * 0.70]))
     story.append(Spacer(1, 5 * mm))
-    story.append(Paragraph("Cómo se consume", ST_H3))
-    story.append(li("<b>REST sobre HTTPS y respuesta JSON</b>, lista para cualquier "
-                    "lenguaje (cURL, Python, JavaScript, PHP, Java)."))
-    story.append(li("<b>Solo lectura</b>: la API consulta datos, nunca los modifica."))
-    story.append(li("<b>Clave por organización</b>: cada petición se autentica con la "
-                    "API key de la entidad en la cabecera <font face=\"Courier\">X-API-Key</font>; "
-                    "el administrador la genera y puede regenerarla, lo que invalida la "
-                    "anterior al instante."))
-    story.append(li("<b>Contrato estable y filtrable</b>: versionado para no romper a "
-                    "los integradores, con consultas por buque (IMO o MMSI)."))
+    story.append(KeepTogether([
+        Paragraph("Cómo se consume", ST_H3),
+        li("<b>REST sobre HTTPS y respuesta JSON</b>, lista para cualquier "
+           "lenguaje (cURL, Python, JavaScript, PHP, Java)."),
+        li("<b>Solo lectura</b>: la API consulta datos, nunca los modifica."),
+        li("<b>Clave por organización</b>: cada petición se autentica con la "
+           "API key de la entidad en la cabecera <font face=\"Courier\">X-API-Key</font>; "
+           "el administrador la genera y puede regenerarla, lo que invalida la "
+           "anterior al instante."),
+        li("<b>Contrato estable y filtrable</b>: versionado para no romper a "
+           "los integradores, con consultas por buque (IMO o MMSI)."),
+    ]))
     story.append(Spacer(1, 3 * mm))
     story.append(Paragraph(
         "<b>Control de acceso.</b> La API es de solo lectura y expone únicamente "
@@ -1100,48 +1128,54 @@ def _bloque3(story, doc):
         "está en desarrollo -no forma parte del producto actual- y se presenta "
         "aquí como planteamiento.", ST_BODY_LEAD))
 
-    story.append(Paragraph("De la heurística al modelo entrenado", ST_H3))
-    story.append(Paragraph(
-        "El cálculo de ETA de hoy (<i>EtaCalculatorService</i>) combina la "
-        "posición y velocidad AIS con la ETA declarada por el buque, ponderadas "
-        "según la distancia al puerto, y asigna un nivel de confianza (alta / "
-        "media / baja). Es una regla fija, igual para cualquier puerto. El "
-        "modelo predictivo sustituye esa regla por un sistema entrenado con los "
-        "patrones reales de tráfico hacia el puerto -tipo de buque, época del "
-        "año, procedencia, comportamiento histórico de cada ruta- para una "
-        "estimación específica de este puerto, no genérica.", ST_BODY))
+    story.append(KeepTogether([
+        Paragraph("De la heurística al modelo entrenado", ST_H3),
+        Paragraph(
+            "El cálculo de ETA de hoy (<i>EtaCalculatorService</i>) combina la "
+            "posición y velocidad AIS con la ETA declarada por el buque, ponderadas "
+            "según la distancia al puerto, y asigna un nivel de confianza (alta / "
+            "media / baja). Es una regla fija, igual para cualquier puerto. El "
+            "modelo predictivo sustituye esa regla por un sistema entrenado con los "
+            "patrones reales de tráfico hacia el puerto -tipo de buque, época del "
+            "año, procedencia, comportamiento histórico de cada ruta- para una "
+            "estimación específica de este puerto, no genérica.", ST_BODY),
+    ]))
 
-    story.append(Paragraph("Qué cambia para la Autoridad Portuaria", ST_H3))
-    story.append(Paragraph(
-        "Una ETA más fiable y con más antelación no es una mejora cosmética: "
-        "cambia el momento en el que se puede actuar. Hoy la plataforma "
-        "reacciona cuando el buque ya está a pocas millas del puerto (detección "
-        "por proximidad AIS); con IA predictiva, la anticipación llega mucho "
-        "antes de esa ventana.", ST_BODY))
-    story.append(std_table(
-        header=["Antes de la llegada", "Con IA predictiva"],
-        rows=[
-            ["Planificar practicaje y remolcadores",
-             "Previsión con más antelación, sobre una ETA más estable"],
-            ["Anticipar la asignación de muelle",
-             "Más margen para evaluar la sugerencia de muelle antes de que el "
-             "buque esté cerca"],
-            ["Prepararse para congestión futura",
-             "Previsión de ocupación a 72 h apoyada en una ETA que aprende, no "
-             "en una regla fija"],
-            ["Reaccionar cuando el buque entra en el área",
-             "Anticipar movimientos de operación antes de esa entrada"],
-        ],
-        col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]))
+    story.append(KeepTogether([
+        Paragraph("Qué cambia para la Autoridad Portuaria", ST_H3),
+        Paragraph(
+            "Una ETA más fiable y con más antelación no es una mejora cosmética: "
+            "cambia el momento en el que se puede actuar. Hoy la plataforma "
+            "reacciona cuando el buque ya está a pocas millas del puerto (detección "
+            "por proximidad AIS); con IA predictiva, la anticipación llega mucho "
+            "antes de esa ventana.", ST_BODY),
+        std_table(
+            header=["Antes de la llegada", "Con IA predictiva"],
+            rows=[
+                ["Planificar practicaje y remolcadores",
+                 "Previsión con más antelación, sobre una ETA más estable"],
+                ["Anticipar la asignación de muelle",
+                 "Más margen para evaluar la sugerencia de muelle antes de que el "
+                 "buque esté cerca"],
+                ["Prepararse para congestión futura",
+                 "Previsión de ocupación a 72 h apoyada en una ETA que aprende, no "
+                 "en una regla fija"],
+                ["Reaccionar cuando el buque entra en el área",
+                 "Anticipar movimientos de operación antes de esa entrada"],
+            ],
+            col_widths=[CONTENT_W * 0.42, CONTENT_W * 0.58]),
+    ]))
 
     story.append(Spacer(1, 3 * mm))
-    story.append(Paragraph("Mejora con cada escala", ST_H3))
-    story.append(Paragraph(
-        "El modelo aprende de la propia actividad del puerto: cuantas más "
-        "escalas reales se acumulen -llegada declarada, posición AIS real y "
-        "hora de llegada efectiva-, más preciso se vuelve. No es un modelo "
-        "genérico importado de otro puerto, sino uno que se afina con el "
-        "tráfico real de este puerto.", ST_BODY))
+    story.append(KeepTogether([
+        Paragraph("Mejora con cada escala", ST_H3),
+        Paragraph(
+            "El modelo aprende de la propia actividad del puerto: cuantas más "
+            "escalas reales se acumulen -llegada declarada, posición AIS real y "
+            "hora de llegada efectiva-, más preciso se vuelve. No es un modelo "
+            "genérico importado de otro puerto, sino uno que se afina con el "
+            "tráfico real de este puerto.", ST_BODY),
+    ]))
     story.append(Spacer(1, 2 * mm))
     story.append(Paragraph(
         "<b>Alcance de esta propuesta.</b> No forma parte de la plataforma "
