@@ -70,7 +70,7 @@ identidad OAuth2/OIDC, gateway.
                          │      ┌──────────────┐        ▼
                          │      │   Backend    │   ┌──────────────┐
                          │      │ Spring Boot  │   │  portIO-ai   │
-                         │      │    :8081     │   │ Spring AI    │
+                         │      │    :8081     │   │ FastAPI      │
                          │      │ dominio+WS   │   │    :8083     │
                          │      └──────┬───────┘   └──────┬───────┘
                          │             │ lectura app.*     │
@@ -257,8 +257,9 @@ explícito en código, no declarativo):
 1. **Claim JWT `company_id`**: cada access token lleva el `company_id` del
    usuario, emitido por el auth server al autenticarse.
 2. **`CompanyContext`**: bean *request-scoped*, poblado por
-   `CompanyContextFilter` a partir del JWT — mismo patrón, clases
-   prácticamente idénticas, en `portIO-backend` y `portIO-ai`. El *gateway*
+   `CompanyContextFilter` a partir del JWT en `portIO-backend`; `portIO-ai`
+   (Python) aplica el mismo patrón con un contexto por petición que rellena su
+   middleware de seguridad a partir del mismo JWT. El *gateway*
    nunca inyecta cabeceras de identidad; cada servicio deriva la suya del
    mismo JWT de forma independiente.
 3. **Filtrado explícito por repositorio**: cada consulta sensible exige
@@ -268,16 +269,17 @@ explícito en código, no declarativo):
 4. **Verificación en servicio**: `ConversationService` (portIO-ai) y los
    servicios de `operations` repiten la comprobación de propiedad antes de
    leer/escribir, no confían solo en la query.
-5. **En `portIO-ai`**, una capa adicional: `PortOperationsTools` (las
-   herramientas que el modelo puede invocar) recibe el `companyId` por
-   `ToolContext`, rellenado por el servidor — nunca por un argumento que el
+5. **En `portIO-ai`**, una capa adicional: las *tools* (las herramientas que
+   el modelo puede invocar) reciben el `companyId` por la configuración de
+   ejecución del agente (`RunnableConfig` de LangGraph), rellenada por el
+   servidor — nunca por un argumento que el
    modelo o el usuario puedan influir. Si una herramienta se invoca sin ese
    contexto, falla explícitamente en vez de devolver datos sin filtrar.
 
 No existe un test de integración `CompanyIsolationIT` dedicado en el
 repositorio actual; la única cobertura automatizada de aislamiento son los
-tests unitarios específicos de cada servicio (p. ej.
-`ConversationServiceIsolationTest` en `portIO-ai`).
+tests específicos de cada servicio (p. ej. en `portIO-ai`, los tests de
+integración de conversaciones y de *tools* contra un Postgres real).
 
 ---
 
@@ -306,7 +308,7 @@ servicio los mapea con su propio `JwtAuthConverter`
 | Backend    | Java 21, Spring Boot 3.3.5, Spring Security, JPA/Hibernate, Flyway, Lombok, MapStruct (en classpath, mappers escritos a mano) |
 | Auth       | Spring Authorization Server (gestionado por Boot 3.3.5)                    |
 | Gateway    | Spring Cloud Gateway 2023.0.3, reactivo (WebFlux)                           |
-| IA         | Spring Boot 3.4.2 (módulo propio, línea independiente del resto) + Spring AI 1.0.3. Solo Ollama está cableado hoy (`ChatModel`/`EmbeddingModel` agnósticos de proveedor; cambiar de proveedor es un cambio de dependencia, no de código — pero no hay selección por variable de entorno ya implementada) |
+| IA         | Python 3.12, FastAPI + Pydantic v2, LangChain + LangGraph (agente con *tool-calling*), SQLAlchemy 2 async + Alembic, pgvector. Solo Ollama está cableado hoy (`ChatOllama`/`OllamaEmbeddings`; cambiar de proveedor es cambiar esas dos clases, no hay selección por variable de entorno). Hasta noviembre de 2026 era Spring Boot + Spring AI, con el mismo contrato HTTP |
 | BD         | PostgreSQL + PostGIS + pgvector, una sola instancia, esquemas `app`/`auth`/`ai` |
 | App        | Next.js 14 (App Router), TypeScript, Tailwind, Radix UI, Framer Motion, MapLibre GL, Zustand, Axios, React Hook Form + Zod. **Sin React Query** (retirado deliberadamente, ver `portIO-frontend`) |
 | Web        | Next.js 14 (App Router), TypeScript, Tailwind, Framer Motion, Radix UI — sitio de marketing estático, sin backend propio |
@@ -323,7 +325,8 @@ servicio los mapea con su propio `JwtAuthConverter`
 - No hay llamadas HTTP entre servicios backend en *runtime* — cada uno
   valida el JWT de forma independiente contra el mismo JWKS del auth
   server (offline, cacheado). `portIO-ai` sí lee (solo lectura, nunca
-  escritura) tablas de `app.*` vía JPA read-only repositories.
+  escritura) tablas de `app.*` con consultas SQLAlchemy en transacciones
+  `READ ONLY`.
 - El *gateway* es el único punto de entrada público para `/api/**` y
   `/ws/**`. El auth server también está expuesto públicamente (el
   navegador debe redirigir a él para `/oauth2/authorize` y `/oauth2/token`,
@@ -346,7 +349,7 @@ portIO-platform/
 ├── portIO-backend/       Maven, servicio de dominio Spring Boot (puerto 8081)
 ├── portIO-auth/          Maven, Spring Authorization Server (puerto 9000)
 ├── portIO-gateway/       Maven, Spring Cloud Gateway (puerto 8080, único público)
-├── portIO-ai/             Maven, asistente IA Spring AI (puerto 8083) - ver sección 11
+├── portIO-ai/             Python (uv), asistente IA FastAPI + LangGraph (puerto 8083) - ver sección 11
 ├── portIO-frontend/      Next.js 14, aplicación real (puerto 3000)
 ├── portIO-web/           Next.js 14, sitio de marketing (sin backend propio)
 ├── portIO-infra/
@@ -371,18 +374,19 @@ Microservicio independiente, mismo patrón de despliegue que `backend`
 ```
 portIO-frontend → Gateway (Path=/api/v1/ai/**, declarada antes de /api/**)
                 → portIO-ai :8083 → { Postgres (schema ai, pgvector) + app.* read-only
-                                     , Ollama (en el host, vía host.docker.internal) }
+                                     , Ollama (servicio ollama del compose) }
 ```
 
 - **Identidad**: el mismo patrón que `backend` — valida el JWT de forma
-  independiente contra el mismo JWKS del auth server (`CompanyContext` +
-  `CompanyContextFilter`, clases prácticamente idénticas). El *gateway* no
+  independiente contra el mismo JWKS del auth server y deja `company_id` y
+  `sub` en un contexto por petición (en Python, `security/`). El *gateway* no
   añade *headers* de identidad; nunca lo hizo para `backend` tampoco.
 - **Datos estructurados**: el modelo nunca ejecuta SQL. Responde preguntas
-  sobre escalas/atraques/alertas/buques vía *tool-calling* de Spring AI
-  (`PortOperationsTools`) sobre repositorios JPA de solo lectura
-  (`Repository<T, ID>`, sin `save`/`delete`) mapeados a las tablas de `app`
-  que ya posee `backend`. El `companyId` llega al *tool* vía `ToolContext`,
+  sobre escalas/atraques/alertas/buques vía *tool-calling* (agente
+  LangGraph: modelo ↔ 5 *tools* de solo lectura, como máximo 10 llamadas al
+  modelo por turno) con consultas SQLAlchemy en transacciones `READ ONLY`
+  sobre las tablas de `app` que ya posee `backend`. El `companyId` llega al
+  *tool* por la configuración de ejecución del agente (`RunnableConfig`),
   nunca como argumento que el modelo pueda rellenar.
 - **Documentación funcional**: indexada con pgvector (esquema propio `ai`,
   tabla `ai.document_chunk`) para RAG sobre "cómo se usa la aplicación" —

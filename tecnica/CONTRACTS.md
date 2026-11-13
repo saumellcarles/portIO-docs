@@ -32,18 +32,19 @@
 | `portIO-backend` | `com.portio.backend` |
 | `portIO-auth` | `com.portio.auth` |
 | `portIO-gateway` | `com.portio.gateway` |
-| `portIO-ai` | `com.portio.ai` |
+
+`portIO-ai` es Python: paquete `portio_ai` (bajo `src/`).
 
 ## 3. Versiones
 
-- Java **21** en los cuatro servicios backend.
+- Java **21** en los tres servicios Java (`backend`, `auth`, `gateway`).
 - Spring Boot **3.3.5** — `backend`, `auth`, `gateway`.
-- Spring Boot **3.4.2** — `ai` (línea independiente, requerida por Spring AI
-  1.0.3; proyecto Maven propio sin `parent` compartido, así que esto no
-  afecta a los demás).
 - Spring Cloud **2023.0.3** (`gateway`).
-- Spring AI **1.0.3** (`ai`).
-- Cada módulo tiene su propio `pom.xml` sin `parent` compartido.
+- Cada módulo Java tiene su propio `pom.xml` sin `parent` compartido.
+- `ai`: **Python 3.12**, FastAPI, LangChain + LangGraph, SQLAlchemy 2
+  (async) + Alembic; dependencias fijadas en `pyproject.toml` + `uv.lock`.
+  Hasta noviembre de 2026 era Spring Boot 3.4.2 + Spring AI 1.0.3, con el
+  mismo contrato HTTP.
 
 ## 4. PostgreSQL
 
@@ -56,13 +57,14 @@
 | `ai` | `portIO-ai` | `conversation`, `message`, `document_chunk` (pgvector), `ingested_source` |
 | `public` | compartido | extensión `postgis` (geometría de atraques) y `vector`/`hstore` (pgvector, usado por `ai`) |
 
-- `portIO-ai` lee (nunca escribe) tablas de `app.*` vía repositorios JPA de
-  solo lectura (`Repository<T, ID>`, sin `save`/`delete` definidos).
+- `portIO-ai` lee (nunca escribe) tablas de `app.*` con consultas SQLAlchemy
+  en transacciones `READ ONLY`.
 - El módulo de emisiones (`app.vessel_emissions` y columnas de motor/MRV en
   `app.vessel`) se eliminó por completo (`V5__drop_emissions.sql`). No
   existe en el esquema actual.
-- Flyway: cada servicio migra su propio esquema de forma independiente
-  (`classpath:db/migration/app`, `/auth`, `/ai`).
+- Migraciones: cada servicio migra su propio esquema de forma independiente
+  — Flyway en `backend`/`auth` (`classpath:db/migration/app`, `/auth`),
+  Alembic en `ai` (versión en `ai.alembic_version`).
 
 ## 5. Contrato OAuth2 / OIDC
 
@@ -119,12 +121,15 @@ username en el momento de emitir el token — no vienen de la sesión.
 
 ### 5.4 Conversión JWT en cada servicio
 
-`backend`, `ai` y `gateway` usan el mismo patrón, independiente entre sí:
+`backend` y `gateway` usan el mismo patrón, independiente entre sí:
 `spring.security.oauth2.resourceserver.jwt.issuer-uri` +
 `JwtAuthConverter` (mapea `authorities` → `ROLE_`-prefixed
 `SimpleGrantedAuthority`) + `CompanyContextFilter` (extrae `company_id`/
 `sub` hacia un `CompanyContext` *request-scoped*). `portIO-gateway` valida
 la firma pero no popula `CompanyContext` (no lo necesita, solo enruta).
+`ai` (Python) hace lo equivalente: valida el JWT contra el JWKS
+(`AUTH_JWK_SET_URI`) y el issuer (`AUTH_ISSUER`), mapea `authorities` a roles
+y deja `company_id`/`sub` en un contexto por petición.
 
 ## 6. Contrato REST (resumen — ver cada README para el detalle completo)
 
@@ -200,6 +205,9 @@ siquiera que exista.
   la siguiente, o la capturaría ella); `Path=/api/**` → `backend`;
   `Path=/ws,/ws/**` → `backend` (esquema `ws://`, proxia el *upgrade*
   HTTP→WebSocket de forma transparente).
+- Expone al navegador la cabecera `X-Conversation-Id` (el chat en
+  *streaming* solo devuelve ahí el id de la conversación); configurado en el
+  `docker-compose.yml` de `portIO-infra`.
 - CORS centralizado aquí, en ningún otro servicio (duplicar cabeceras
   `Access-Control-Allow-Origin` en una respuesta que ya pasó por el
   *gateway* hace que el navegador la rechace). Origen permitido:
@@ -241,10 +249,9 @@ servicio construye desde `../<repo>` con su propio `Dockerfile`.
 Orden de arranque (`depends_on` + *healthcheck*):
 `postgres` → `auth` → `backend` → `ai` → `gateway` → `frontend`.
 
-`ai` necesita además Ollama accesible en el host
-(`host.docker.internal:11434`, mapeado vía `extra_hosts` — funciona en
-Linux también con Docker ≥20.10) con los modelos `llama3.2:3b` y
-`nomic-embed-text` descargados.
+`ai` necesita además Ollama: corre como servicio `ollama` del mismo
+*compose* (`http://ollama:11434`), y `ollama-pull` descarga los modelos
+`llama3.2:3b` y `nomic-embed-text` antes de que `ai` arranque.
 
 `portIO-web` no forma parte de este *compose*: sitio estático
 independiente, sin dependencias de backend.
@@ -269,8 +276,9 @@ independiente, sin dependencias de backend.
 - Ningún servicio imprime secretos en los logs.
 - Todo *write path* pasa por un servicio de aplicación — nunca
   controlador → repositorio directo.
-- Toda consulta JPA sobre una tabla con `company_id` filtra por la empresa
-  actual, vía la firma del método de repositorio.
+- Toda consulta sobre una tabla con `company_id` filtra por la empresa
+  actual (en `backend`, vía la firma del método de repositorio JPA; en `ai`,
+  como parámetro obligatorio de cada consulta).
 - Los `timestamp` son `Instant`/`TIMESTAMPTZ`, nunca `LocalDateTime`.
 - Los identificadores son `UUID` Java / `uuid` Postgres.
 - No existe generación de PDF, tabla `outbox`, tabla `audit_log`, tabla

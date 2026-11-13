@@ -223,7 +223,7 @@ decisión del operador del puerto, no una asignación.
 
 Asistente conversacional sobre los datos operativos reales del puerto, más
 un resumen ejecutivo diario generado automáticamente. Lo resuelve el
-servicio independiente `portIO-ai` (Spring AI), consumido por el frontend a
+servicio independiente `portIO-ai` (Python: FastAPI + LangGraph), consumido por el frontend a
 través del *gateway* (`/api/v1/ai/**`).
 
 Dos vías de recuperación conviven: preguntas sobre datos del sistema se
@@ -258,8 +258,8 @@ páginas autenticadas (oculta en esta misma ruta para no duplicar la UI).
 
 **Backend.** Esquema propio `ai` (`conversation`, `message`,
 `document_chunk` para RAG). El modelo nunca toca la base de datos
-directamente: los datos operativos los lee a través de herramientas Java
-(`PortOperationsTools`) que reciben el `company_id` del servidor, nunca del
+directamente: los datos operativos los lee a través de herramientas
+(*tools*) de solo lectura que reciben el `company_id` del servidor, nunca del
 modelo ni del usuario.
 
 ---
